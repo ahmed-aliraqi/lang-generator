@@ -23,7 +23,7 @@ Next, you should publish the config file:
 php artisan vendor:publish --provider="AhmedAliraqi\LangGenerator\ServiceProvider" --tag="config"
 
 ```
-- `lang` key contains the lang files and them paths.
+- `lang` key contains the lang files and their paths.
 
 ### Usage
 ```shell
