@@ -101,7 +101,7 @@ class LangGenerateCommand extends Command
                 return [
                     'path' => str_replace('{lang}', $lang, $langPath),
                     'key' => $key,
-                    'content' => $content,
+                    'content' => $this->arrayFilter($content),
                 ];
             }
         }
@@ -124,7 +124,25 @@ class LangGenerateCommand extends Command
         foreach ($keys as $key) {
             $arr = &$arr[$key];
         }
-
         $arr = $value;
+    }
+
+    protected function arrayFilter($arrayIn)
+    {
+        $output = [];
+        if (is_array($arrayIn)) {
+            foreach ($arrayIn as $key => $val) {
+                if (! $key) {
+                    continue;
+                }
+                if (is_array($val)) {
+                    $output[$key] = $this->arrayFilter($val);
+                } else {
+                    $output[$key] = $val;
+                }
+            }
+        }
+
+        return $output;
     }
 }
