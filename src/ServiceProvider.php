@@ -15,8 +15,8 @@ class ServiceProvider extends BaseServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(
-            __DIR__.'/../config/translation-manager.php',
-            'translation-manager'
+            __DIR__.'/../config/lang-generator.php',
+            'lang-generator'
         );
     }
 
@@ -28,7 +28,7 @@ class ServiceProvider extends BaseServiceProvider
     public function boot()
     {
         $this->publishes([
-            __DIR__.'/../config/translation-manager.php' => config_path('translation-manager.php'),
+            __DIR__.'/../config/lang-generator.php' => config_path('lang-generator.php'),
         ], 'config');
 
         $this->commands([

@@ -70,8 +70,8 @@ class LangGenerateCommand extends Command
 
     public function getLang($match, $lang = 'en')
     {
-        $langPaths = Arr::wrap(config('translation-manager.lang'));
-        $default = config('translation-manager.defaultLang');
+        $langPaths = Arr::wrap(config('lang-generator.lang'));
+        $default = config('lang-generator.defaultLang');
 
         foreach ($langPaths as $alias => $langPath) {
             if (Str::startsWith($match, $alias)) {

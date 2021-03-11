@@ -13,7 +13,7 @@ class Manager
     {
         $paths = array_map(function ($path) {
             return $this->getDirContents($path);
-        }, Arr::wrap(config('translation-manager.matches')));
+        }, Arr::wrap(config('lang-generator.matches')));
         $paths = Arr::flatten($paths);
         $paths = array_filter($paths, function ($path) {
             return is_file($path);
