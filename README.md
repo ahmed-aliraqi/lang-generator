@@ -3,16 +3,6 @@
 This package used to search for all lang keys from views and put them to lang files
 
 ### Installation
-Add the repository to your application's composer.json file:
-```json
-"repositories": [
-    {
-        "type": "composer",
-        "url": "https://packages.laraeast.com"
-    }
-],
-```
-Next, you may require `ahmed-aliraqi/lang-generator` package:
 ```shell
 composer require ahmed-aliraqi/lang-generator --dev
 ```
