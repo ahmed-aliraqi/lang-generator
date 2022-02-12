@@ -8,10 +8,10 @@ return [
      */
 
     'lang' => [
-        'auth' => resource_path('lang/{lang}/auth.php'),
-        'pagination' => resource_path('lang/{lang}/pagination.php'),
-        'passwords' => resource_path('lang/{lang}/passwords.php'),
-        'validation' => resource_path('lang/{lang}/validation.php'),
+        'auth' => base_path('lang/{lang}/auth.php'),
+        'pagination' => base_path('lang/{lang}/pagination.php'),
+        'passwords' => base_path('lang/{lang}/passwords.php'),
+        'validation' => base_path('lang/{lang}/validation.php'),
     ],
 
     /*
@@ -20,6 +20,6 @@ return [
 
     'matches' => [
         app_path(),
-        resource_path('views'),
+        base_path('views'),
     ],
 ];
