@@ -20,6 +20,6 @@ return [
 
     'matches' => [
         app_path(),
-        base_path('views'),
+        resource_path('views'),
     ],
 ];

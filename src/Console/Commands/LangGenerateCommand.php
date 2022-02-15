@@ -53,7 +53,7 @@ class LangGenerateCommand extends Command
                         );
                     }
                 } else {
-                    $jsonPath = str_replace('{lang}', $locale->code, resource_path('lang/{lang}.json'));
+                    $jsonPath = str_replace('{lang}', $locale->code, base_path('lang/{lang}.json'));
                     $data = [];
                     if (file_exists($jsonPath)) {
                         $data = json_decode(file_get_contents($jsonPath), true);
