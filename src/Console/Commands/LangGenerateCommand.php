@@ -45,7 +45,7 @@ class LangGenerateCommand extends Command
 
         foreach (Locales::get() as $locale) {
             foreach ($matches as $key) {
-                if (is_array($lang = $this->getLang($key, $locale->code))) {
+                if (is_array($lang = $this->getLang($key, $locale->getCode()))) {
                     if (file_exists($lang['path'])) {
                         file_put_contents(
                             $lang['path'],
@@ -53,7 +53,7 @@ class LangGenerateCommand extends Command
                         );
                     }
                 } else {
-                    $jsonPath = str_replace('{lang}', $locale->code, base_path('lang/{lang}.json'));
+                    $jsonPath = str_replace('{lang}', $locale->getCode(), base_path('lang/{lang}.json'));
                     $data = [];
                     if (file_exists($jsonPath)) {
                         $data = json_decode(file_get_contents($jsonPath), true);
