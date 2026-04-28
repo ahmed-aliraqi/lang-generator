@@ -2,10 +2,8 @@
 
 namespace AhmedAliraqi\LangGenerator\Console\Commands;
 
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-use Illuminate\Console\Command;
 use AhmedAliraqi\LangGenerator\Manager;
+use Illuminate\Console\Command;
 use Laraeast\LaravelLocales\Facades\Locales;
 
 class LangGenerateCommand extends Command
@@ -22,7 +20,7 @@ class LangGenerateCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Search for all lang keys from views and put them to lang files';
+    protected $description = 'Search for all lang keys from views and put them to json lang files';
 
     /**
      * Create a new command instance.
@@ -34,115 +32,97 @@ class LangGenerateCommand extends Command
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return int
-     */
-    public function handle()
+    public function handle(): int
     {
-        $matches = app(Manager::class)->getMatched();
+        // Get all matched translation keys from the project
+        $matches = array_unique(app(Manager::class)->getMatched());
+
+        // Store only JSON keys (non-PHP translation keys)
+        $jsonKeys = [];
+
+        $langPaths = config('lang-generator.lang_paths', []);
+
+        /**
+         * Build list of PHP lang files per locale
+         * [locale => [fileName => true]]
+         */
+        $langFiles = [];
 
         foreach (Locales::get() as $locale) {
-            foreach ($matches as $key) {
-                if (is_array($lang = $this->getLang($key, $locale->getCode()))) {
-                    if (file_exists($lang['path'])) {
-                        file_put_contents(
-                            $lang['path'],
-                            "<?php\n\nreturn ".$this->arrayToString($lang['content']).";\n"
-                        );
-                    }
-                } else {
-                    $jsonPath = str_replace('{lang}', $locale->getCode(), base_path('lang/{lang}.json'));
-                    $data = [];
-                    if (file_exists($jsonPath)) {
-                        $data = json_decode(file_get_contents($jsonPath), true);
-                    }
-                    if (! isset($data[$key])) {
-                        $data[$key] = $key;
-                    }
+            $langCode = $locale->getCode();
 
-                    file_put_contents($jsonPath, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-                }
-            }
-        }
-    }
+            foreach ($langPaths as $pathTemplate) {
+                $path = str_replace('{lang}', $langCode, $pathTemplate);
 
-    public function getLang($match, $lang = 'en')
-    {
-        $langPaths = Arr::wrap(config('lang-generator.lang'));
-        $default = config('lang-generator.defaultLang');
-
-        foreach ($langPaths as $alias => $langPath) {
-            if (Str::startsWith($match, $alias)) {
-                $key = str_replace($alias.'.', '', $match);
-
-                $content = [];
-
-                if (file_exists($path = str_replace('{lang}', $lang, $langPath))) {
-                    $content = require $path;
-                } else {
-                    if (file_exists($defaultPath = str_replace('{lang}', $default, $langPath))) {
-                        $content = require $defaultPath;
-                    }
-                }
-                if (! isset($content[$key])) {
-                    if (Str::contains($key, '.')) {
-                        if ($key && ! data_get($content, $key)) {
-                            $this->dotToNested($content, $key, $key);
-                        }
-                    } else {
-                        if ($key) {
-                            $content[$key] = $key;
-                        }
-                    }
-                }
-
-                return [
-                    'path' => str_replace('{lang}', $lang, $langPath),
-                    'key' => $key,
-                    'content' => $this->arrayFilter($content),
-                ];
-            }
-        }
-    }
-
-    protected function arrayToString($expression)
-    {
-        $export = var_export($expression, true);
-        $export = preg_replace("/^([ ]*)(.*)/m", '$1$1$2', $export);
-        $array = preg_split("/\r\n|\n|\r/", $export);
-        $array = preg_replace(["/\s*array\s\($/", "/\)(,)?$/", "/\s=>\s$/"], [null, ']$1', ' => ['], $array);
-        $export = join(PHP_EOL, array_filter(["["] + $array));
-
-        return $export;
-    }
-
-    protected function dotToNested(&$arr, $path, $value, $separator = '.')
-    {
-        $keys = explode($separator, $path);
-        foreach ($keys as $key) {
-            $arr = &$arr[$key];
-        }
-        $arr = $value;
-    }
-
-    protected function arrayFilter($arrayIn)
-    {
-        $output = [];
-        if (is_array($arrayIn)) {
-            foreach ($arrayIn as $key => $val) {
-                if (! $key) {
-                    continue;
-                }
-                if (is_array($val)) {
-                    $output[$key] = $this->arrayFilter($val);
-                } else {
-                    $output[$key] = $val;
+                foreach (glob($path.'/*.php') as $file) {
+                    $fileName = basename($file, '.php');
+                    $langFiles[$langCode][$fileName] = true;
                 }
             }
         }
 
-        return $output;
+        foreach ($matches as $key) {
+
+            if (empty($key)) {
+                continue;
+            }
+
+            $parts = explode('.', $key);
+            $firstSegment = $parts[0];
+
+            foreach (Locales::get() as $locale) {
+
+                $langCode = $locale->getCode();
+
+                if (isset($langFiles[$langCode][$firstSegment])) {
+                    continue 2;
+                }
+            }
+
+            $jsonKeys[] = $key;
+        }
+
+        if (empty($jsonKeys)) {
+            $this->info('No JSON keys found.');
+
+            return Command::FAILURE;
+        }
+
+        foreach (Locales::get() as $locale) {
+
+            $langCode = $locale->getCode();
+            $jsonPath = base_path("lang/{$langCode}.json");
+
+            $data = file_exists($jsonPath)
+                ? json_decode(file_get_contents($jsonPath), true)
+                : [];
+
+            $updated = false;
+
+            foreach ($jsonKeys as $key) {
+
+                if (! isset($data[$key])) {
+                    $data[$key] = $key;
+                    $updated = true;
+
+                    $this->line("✔ {$key}");
+                }
+            }
+
+            if ($updated) {
+                file_put_contents(
+                    $jsonPath,
+                    json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+                );
+
+                $this->info("Updated JSON: {$jsonPath}");
+            } else {
+                $this->info("No changes for: {$jsonPath}");
+            }
+        }
+
+        $this->info('🚀 JSON generation completed');
+
+        return Command::SUCCESS;
     }
 }

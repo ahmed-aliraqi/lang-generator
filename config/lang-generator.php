@@ -7,11 +7,8 @@ return [
      * The lang files paths.
      */
 
-    'lang' => [
-        'auth' => base_path('lang/{lang}/auth.php'),
-        'pagination' => base_path('lang/{lang}/pagination.php'),
-        'passwords' => base_path('lang/{lang}/passwords.php'),
-        'validation' => base_path('lang/{lang}/validation.php'),
+    'lang_paths' => [
+        base_path('lang/{lang}'),
     ],
 
     /*
