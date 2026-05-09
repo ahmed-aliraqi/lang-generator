@@ -22,8 +22,7 @@ class Manager
         foreach ($paths as $path) {
             if (file_exists($path)) {
                 $content = file_get_contents($path);
-                $pattern = '/(?: __\((?:\'|")|@lang\((?:\'|")|trans\((?:\'|"))([a-zA-Z0-9ء-ي\\\\\'"@$%*&!\s._-ًٍَُِ]+)(?:\'|")(?:,|\[|\s)?/miu';
-                preg_match_all($pattern, $content, $matches, PREG_SET_ORDER, 0);
+                $pattern = '/(?:__\s*\(\s*[\'"]|@lang\s*\(\s*[\'"]|trans\s*\(\s*[\'"])([^\'"]+)(?:[\'"])(?:\s*,|\s*\)|\s*\[)?/miu';                preg_match_all($pattern, $content, $matches, PREG_SET_ORDER, 0);
                 foreach ($matches as $match) {
                     if (isset($match[1])) {
                         $keys[] = $match[1];
