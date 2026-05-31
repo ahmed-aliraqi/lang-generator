@@ -18,5 +18,6 @@ return [
     'matches' => [
         app_path(),
         resource_path('views'),
+        resource_path('js'),
     ],
 ];
